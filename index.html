@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <link rel="stylesheet" href="styles.css"/>
+  <title>AI Chat</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.8/dist/ffmpeg.min.js"></script>
+  
+  <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/styles/panda-syntax-dark.min.css">
+  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
+
+  <script src="libraries/markdown-it.min.js"></script>
+  <script src="libraries/prism.min.js"></script>
+  <script src="libraries/tex-mml-chtml.min.js"></script>
+  <script src="libraries/p5.min.js"></script>
+</head>
+<body>
+  <script src="sketch.js"></script>
+
+  <div class="dropdown-container">
+    <input type="checkbox" id="model-selector" class="dropdown-toggle">
+    
+    <label for="model-selector" class="dropdown-trigger">
+      <span class="dropdown-text">DeepSeek V3.1 Terminus</span>
+      <span class="dropdown-arrow">▼</span>
+    </label>
+    
+    <div class="dropdown-menu">
+      <button class="dropdown-option model-option">DeepSeek V3.1 Terminus</button>
+      <button class="dropdown-option model-option">DeepSeek V3.1</button>
+      <button class="dropdown-option model-option">DeepSeek R1</button>
+      <button class="dropdown-option model-option">Qwen3 235B</button>
+      <button class="dropdown-option model-option">Qwen3 Coder 480B</button>
+      <button class="dropdown-option model-option">Qwen3 Next 80B</button>
+      <button class="dropdown-option model-option">Llama 4 Maverick</button>
+      <button class="dropdown-option model-option">Llama 4 Scout</button>
+      <button class="dropdown-option model-option">Llama 3.1 405B</button>
+      <button class="dropdown-option model-option">Kimi K2 Instruct</button>
+      <button class="dropdown-option model-option">GPT OSS 20B</button>
+      <button class="dropdown-option model-option">GPT OSS 120B</button>
+    </div>
+  </div>
+  
+  <div class="dropdown-container export-dropdown-container">
+    <input type="checkbox" id="export-selector" class="dropdown-toggle">
+
+    <label for="export-selector" class="dropdown-trigger export-trigger">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#fff" viewbox="0 0 52 52">
+        <path d="M48.5 31h-3c-.8 0-1.5.7-1.5 1.5v10c0 .8-.7 1.5-1.5 1.5h-33c-.8 0-1.5-.7-1.5-1.5v-10c0-.8-.7-1.5-1.5-1.5h-3c-.8 0-1.5.7-1.5 1.5V46c0 2.2 1.8 4 4 4h40c2.2 0 4-1.8 4-4V32.5c0-.8-.7-1.5-1.5-1.5"/>
+        <path d="M25 37.6c.6.6 1.5.6 2.1 0l13.5-13.5c.6-.6.6-1.5 0-2.1l-2.1-2.1c-.6-.6-1.5-.6-2.1 0l-5.6 5.6c-.6.6-1.7.2-1.7-.7V3.5C29 2.7 28.2 2 27.5 2h-3c-.8 0-1.5.7-1.5 1.5v21.2c0 .9-1.1 1.3-1.7.7l-5.6-5.6c-.6-.6-1.5-.6-2.1 0L11.5 22c-.6.6-.6 1.5 0 2.1z"/>
+      </svg>
+      <span class="dropdown-arrow">▼</span>
+    </label>
+
+    <div class="dropdown-menu export-menu">
+      <button class="dropdown-option export-option" data-format="TXT">TXT</button>
+    </div>
+  </div>
+  
+  <div class="dropdown-container color-picker-container">
+    <input type="checkbox" id="color-picker-selector" class="dropdown-toggle">
+
+    <label for="color-picker-selector" class="dropdown-trigger color-trigger">
+      <svg width="25" height="25" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h20v20H0z"/><path fill="#fff" d="M17.8 2.2c-1-1-2.6-1-3.6 0L12.4 4l-.7-.7c-.4-.4-1-.4-1.4 0l-.8.7c-.4.4-.4 1 0 1.4l5 5c.4.4 1 .4 1.4 0l.7-.7c.4-.4.4-1 0-1.4l-.6-.7 1.8-1.8c1-1 1-2.6 0-3.6M4.4 12c-2.2 2.2-.9 3.2-2.9 5.8l.7.7c2.6-2 3.6-.7 5.8-2.9l5.1-5.1-3.6-3.6z"/></svg>
+      <span class="dropdown-arrow">▼</span>
+    </label>
+
+    <div class="dropdown-menu color-menu">
+      <div class="sv-picker">
+        <div class="sv-gradient"></div>
+        <div class="sv-selector"></div>
+      </div>
+      <div class="hue-picker">
+        <div class="hue-gradient"></div>
+        <div class="hue-selector"></div>
+      </div>
+      <div class="preview"></div>
+    </div>
+  </div>
+</body>
+</html>
