@@ -1610,3 +1610,4 @@ function delay(ms, finalBusy = 1e-10) {
 
 function destroyDelayWorker() {
   worker.terminate();
+}
