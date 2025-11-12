@@ -3,15 +3,14 @@ let [models, history] = [{
   "DeepSeek V3.1 Terminus": "deepseek-ai/deepseek-v3.1-terminus",
   "DeepSeek V3.1": "deepseek-ai/deepseek-v3.1",
   "DeepSeek R1": "deepseek-ai/deepseek-r1-0528",
+  "GPT OSS 120B": "openai/gpt-oss-120b",
+  "GPT OSS 20B": "openai/gpt-oss-20b",
   "Qwen3 235B": "qwen/qwen3-235b-a22b",    
-  "Qwen3 Coder 480B": "qwen/qwen3-cxoder-480b-a35b-instruct",
+  "Qwen3 Coder 480B": "qwen/qwen3-coder-480b-a35b-instruct",
   "Qwen3 Next 80B": "qwen/qwen3-next-80b-a3b-thinking",
   "Llama 4 Maverick": "meta/llama-4-maverick-17b-128e-instruct",
   "Llama 4 Scout": "meta/llama-4-scout-17b-16e-instruct",
-  "Llama 3.1 405B": "meta/llama-3.1-405b-instruct",
   "Kimi K2 Instruct": "moonshotai/kimi-k2-instruct-0905",
-  "GPT OSS 20B": "openai/gpt-oss-20b",
-  "GPT OSS 120B": "openai/gpt-oss-120b"
 }, []];
 
 let icon = "", loading = false;
@@ -61,6 +60,7 @@ let currentHue = 0, currentSat = 100, currentVal = 100;
 
 let md;
 let focus = false;
+let sourcesSidebar = null;
 
 function setup() {
   noCanvas();
@@ -73,11 +73,11 @@ function draw() {
   background(colors.bg);
   
   if (input && input.value().length > 0) {
-    input.value(input.value().slice(0, 110000 - 1));
+    input.value(input.value().slice(0, 100000 - 1));
   }
   
   if (inputFieldWrapper && title) {
-    if (history.length > 0) {
+    if (history.length > 0 || responding || loading) {
       inputFieldWrapper.style("bottom", "0px");
     } else {
       inputFieldWrapper.style("bottom", `${windowHeight / 2 - 100}px`);
@@ -158,13 +158,13 @@ async function init() {
   
   window.MathJax = {
     tex: {
-      inlineMath: [["$", "$"], ["\\(", "\\)"]],
-      displayMath: [["$$", "$$"], ["\\[", "\\]"], ["\\\\[", "\\\\]"]],
+      inlineMath: [["\\(", "\\)"]],
+      displayMath: [["\\[", "\\]"], ["\\\\[", "\\\\]"]],
       processEscapes: true,
       processEnvironments: true
     },
     options: {
-      skipHtmlTags: ["script", "noscript", "style", "textarea", "pre"]
+      skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"]
     }
   };
 
@@ -179,7 +179,7 @@ async function init() {
 
   let mathStyles = createElement("style");
   mathStyles.html(`
-    .MathJax_Display { overflow-x:auto; max-width:75% !important; display:inline-block !important; white-space:pre-wrap !important; word-break:break-word !important; }
+    .MathJax_Display { overflow-x:auto; max-width:75% !important; display:inline-block !important; white-space:pre-line !important; word-break:break-word !important; }
     mjx-container { display:inline-block !important; max-width:75% !important; overflow-x:auto !important; }
     .mjx-chtml { white-space:normal !important; word-break:break-word !important; }
     .MJXc-display { display:inline !important; margin:0 !important; }
@@ -213,7 +213,7 @@ function elements() {
   header = createDiv();
   header.style("height", "60px");
   header.style("background", colors.h1)
-  header.style("border-bottom", `1px solid ${colors.br}`);
+  header.style("border-bottom", `3px solid ${colors.br}`);
   header.style("display", "flex");
   header.style("align-items", "center");
   header.style("justify-content", "left");
@@ -285,7 +285,7 @@ function elements() {
   input.style("overflow-y", "auto");
   input.style("scrollbar-width", "thin");
   input.style("scrollbar-color", "rgb(40, 40, 40) transparent");
-  input.attribute("maxlength", "110000");
+  input.attribute("maxlength", "100000");
   input.attribute("placeholder", "Type a message...");
   input.parent(inputFieldWrapper);
 
@@ -296,7 +296,7 @@ function elements() {
     inputFieldWrapper.style("border-color", "rgb(80, 80, 80)");
   });
   
-  charCounter = createSpan("0/110000")
+  charCounter = createSpan("0/100000")
     .style("position", "absolute")
     .style("right", "52px")
     .style("bottom", "15px")
@@ -309,7 +309,7 @@ function elements() {
     input.elt.style.height = "auto";
     input.elt.style.height = min(input.elt.clientHeight, 120) + "px";
     
-    charCounter.elt.innerText = `${input.value().length}/110000`;
+    charCounter.elt.innerText = `${input.value().length}/100000`;
   });
   
   title = createSpan(`<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 255 234" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,234) scale(0.1,-0.1)" fill="
@@ -560,17 +560,17 @@ function setupColorPicker() {
 
   svPicker.addEventListener("mousedown", (e) => {
     draggingSV = true;
-    updateSVFromMouse(e);
+    updateSV(e);
   });
 
   huePicker.addEventListener("mousedown", (e) => {
     draggingHue = true;
-    updateHueFromMouse(e);
+    updateHue(e);
   });
 
   document.addEventListener("mousemove", (e) => {
-    if (draggingSV) updateSVFromMouse(e);
-    if (draggingHue) updateHueFromMouse(e);
+    if (draggingSV) updateSV(e);
+    if (draggingHue) updateHue(e);
   });
 
   document.addEventListener("mouseup", () => {
@@ -579,7 +579,7 @@ function setupColorPicker() {
   });
 }
 
-function updateSVFromMouse(e) {
+function updateSV(e) {
   let rect = svPicker.getBoundingClientRect();
   
   let x = constrain(e.clientX - rect.left, 0, rect.width);
@@ -592,7 +592,7 @@ function updateSVFromMouse(e) {
   updatePreview();
 }
 
-function updateHueFromMouse(e) {
+function updateHue(e) {
   let rect = huePicker.getBoundingClientRect();
   let y = constrain(e.clientY - rect.top, 0, rect.height);
   
@@ -621,14 +621,14 @@ function updateSVGradient() {
 }
 
 function updatePreview() {
-  let rgb = hsvToRgb(currentHue / 360, currentSat / 100, currentVal / 100);
-  let hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  let c = hsvToRgb(currentHue / 360, currentSat / 100, currentVal / 100);
+  let hex = rgbToHex(c.r, c.g, c.b);
   
   if (hex !== pickedColor) {
     pickedColor = hex;
     
     colors.btn = pickedColor;
-    colors.btn2 = rgbToHex(rgb.r - 75, rgb.g, rgb.b);
+    colors.btn2 = rgbToHex(c.r - 75, c.g, c.b);
     
     for (let b of btns) {
       if (b) b.style("background", colors.btn);
@@ -636,6 +636,9 @@ function updatePreview() {
     
     let copyBtn = document.querySelector(".copy-msg");
     if (copyBtn) new p5.Element(copyBtn).style("background", colors.btn);
+    
+    let sourcesBtn = document.querySelector(".sources-btn");
+    if (sourcesBtn) new p5.Element(sourcesBtn).style("background", colors.btn);
   }
   
   preview.style.background = pickedColor;
@@ -699,57 +702,72 @@ async function reply() {
   }
   
   await new Promise(r => setTimeout(r, 10));
-  charCounter.elt.innerText = `0/110000`;
+  charCounter.elt.innerText = `0/100000`;
 }
 
-async function getResponse(query) {
+async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText, mainText, continuing = false, searched = false) {
   time = 0;
   tokens = 0;
   
   if (currentModel !== "") {
     stop = false;
-    
     title.style("opacity", "0");
-    history.push({ role: "user", content: query });
     
-    loading = true;
-    icon = "";
+    if (!continuing) {
+      loading = true;
+      icon = "";
+    }
     
     scrolled = false;
     responding = true;
 
-    output.elt.scrollTo({
+    if (!continuing) output.elt.scrollTo({
       top: output.elt.scrollHeight * 10,
       behavior: "instant",
     });
     
     document.querySelectorAll(".copy-msg").forEach(e => {
-      e.remove();
+      if (!continuing) e.remove();
     });
 
-    let thinkSpan, mainText = "", reasonText = "";
-    let messageSpan = await addMessage("", false, false);
+    if (!mainText) mainText = "";
+    if (!reasonText) reasonText = "";
     
-    let isSearching = await shouldSearch(query);
-    if (isSearching) {
-      let results = await searchResponse(query, messageSpan);
-      let baseQuery = query.toString();
-      query = `Summarize the web results below concisely and accurately to answer the user's true question (ignore phrases like "search the web"), using only provided info and citing sources when possible: User Message: ${baseQuery} | Web Results: ${results}`;
+    if (!messageSpan) messageSpan = await addMessage("", false, false);
+    if (!continuing) history.push({ role: "user", content: query });
+    
+    if (!thinkSpan) {
+      thinkSpan = createSpan("")
+        .style("display", "block")
+        .style("border-left", "5px solid rgb(20, 20, 20)")
+        .style("border-radius", "3px")
+        .style("padding", "8px")
+        .style("margin", "5px 0")
+        .style("font-style", "italic")
+        .style("color", "rgba(200, 220, 200, 0.9)");
+      thinkSpan.style("display", "none");
+      thinkSpan.parent(messageSpan);
     }
-
-    thinkSpan = createSpan("")
-      .style("display", "block")
-      .style("border-left", "5px solid rgb(20, 20, 20)")
-      .style("border-radius", "3px")
-      .style("padding", "8px")
-      .style("margin", "5px 0")
+    
+    let messages = [
+      { "role": "system", "content": "You are an AI chatbot. You are designed to answer and respond to whatever the user requests in English, unless another language is specified or requested in past or current messages." },
+      ...history
+    ];
+    
+    if (!searchDiv && !searched && !continuing) searchDiv = createDiv(`<strong>Searching the Web...<br></strong>`)
+      .style("background", "rgb(50, 50, 50)")
+      .style("border-radius", "10px")
+      .style("font-size", "16px")
+      .style("padding", "5px")
+      .style("align-items", "center")
+      .style("gap", "5px")
+      .style("color", "white")
+      .style("display", "none")
       .style("font-style", "italic")
-      .style("color", "rgba(200, 220, 200, 0.9)");
-    thinkSpan.style("display", "none");
-    thinkSpan.parent(messageSpan);
+      .parent(messageSpan);
 
     try {
-      output.elt.scrollTo({
+      if (!continuing) output.elt.scrollTo({
         top: output.elt.scrollHeight * 10,
         behavior: "instant",
       });
@@ -759,39 +777,76 @@ async function getResponse(query) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: currentModel,
-          temperature: 0.7,
+          temperature: 0.2,
           top_p: 0.9,
-          messages: [
-            { "role": "system", "content": "You are an AI chatbot. You are designed to answer whatever the user requests in English, unless another language is specified or requested in past or current messages." },
-            ...history
-          ],
+          messages,
           stream: true,
-          max_tokens: 16384,
+          max_tokens: 32768,
           chat_template_kwargs: {
             thinking: true
-          }
+          },
+          tools: [{
+            type: "function",
+            function: {
+              name: "search",
+              description: "A web search tool to find current date information for more accurate responses. Use only for current events or facts that may have changed or for researching topics, such as find a person's biography, information about someone or something, use it only for more accurate responses and analysises. Keep it to 2 queries max, and keep the queries short a concise while still able to find accurate results.",
+              parameters: {
+                type: "object",
+                properties: {
+                  queries: {
+                    type: "array",
+                    items: { type: "string" },
+                    minItems: 1,
+                    maxItems: 2
+                  }
+                }
+              }
+            }
+          }],
         })
       });
       
-      loading = false;
-      icon = "";
+      if (!continuing) {
+        loading = false;
+        icon = "";
+      }
       
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       startToken = performance.now();
       
       let reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buffer = "";
-
-      aiText = "";
+      
+      if (!continuing) aiText = "";
+      let toolData = "";
+      
+      let prevType = null;
+      let toolTokens = [
+        "<｜tool▁calls▁begin｜>", 
+        "<｜tool▁call▁begin｜>", 
+        "<｜tool▁sep｜>", 
+        "<｜tool▁call▁end｜>", 
+        "<｜tool▁calls▁end｜>"
+      ];
+      
       while (true) {
         if (stop) {
-          stop = false;
+          input.elt.focus();
+
           responding = false;
-          
           icon = "";
+
+          tps = 0;
+          tokenTimes = [];
+          
+          try {
+            await reader.cancel();
+          } catch (err) {
+            console.warn("Reader cancel failed:", err);
+          }
           break;
         }
-
+        
         let { done, value } = await reader.read();
         if (done) break;
 
@@ -802,12 +857,55 @@ async function getResponse(query) {
 
         for (let ln of parts) {
           if (!ln.startsWith("data: ")) continue;
-
           let json = ln.slice(6).trim();
+          
+          try {
+            let { choices } = JSON.parse(json);
+            
+            let delta = choices[0];
+            let reason = delta?.finish_reason;
+            
+            if (reason === "length") {
+              await delay(100);
+              
+              try {
+                await reader.cancel();
+              } catch (err) {
+                console.warn("Reader cancel failed:", err);
+              }
+              
+              let continueBtn = createButton("Continue");
+              continueBtn.class("continue-btn");
+              continueBtn.size(100, 30);
+              continueBtn.style("background", colors.btn);
+              continueBtn.style("color", colors.tx);
+              continueBtn.style("border", "none");
+              continueBtn.style("border-radius", "8px");
+              continueBtn.style("margin", "3px 3px")
+              continueBtn.style("font-size", "15px");
+              continueBtn.style("font-family", "system-ui, -apple-system, sans-serif");
+              continueBtn.style("font-weight", "100");
+              continueBtn.style("cursor", "pointer");
+              continueBtn.style("transition", "all 0.2s ease");
+              continueBtn.style("text-align", "center");
+              continueBtn.style("position", "relative");
+              continueBtn.style("align-self", "flex-start");
+              continueBtn.style("margin-top", "3px");
+              continueBtn.parent(messageSpan);
+              
+              continueBtn.mousePressed(() => {
+                continueBtn.remove();
+                reasonText += "\n\n"
+                
+                getResponse(`${reasonText}`, thinkSpan, messageSpan, searchDiv, reasonText, true);
+              });
+            }
+          } catch (err) {}
+          
           if (!json || json === "[DONE]") continue;
-
           try {
             updateTPS();
+            let synced = "";
             
             let { choices } = JSON.parse(json);
             let delta = choices[0]?.delta;
@@ -818,21 +916,71 @@ async function getResponse(query) {
             let token = delta?.content || 
               delta?.reasoning_content || null;
             
-            if (type === "reason") {
-              reasonText += token;
-              thinkSpan.style("display", "block");
+            let tool = token ? checkTool(token) : null;
+            if (tool) toolData = tool;
+            
+            if (delta?.tool_calls && delta?.tool_calls[0]) {
+              toolData += delta?.tool_calls[0].function.arguments;
+            }
+            
+            if ((toolData && isJSON(toolData) || tool) && !stop) {
+              try {
+                await reader.cancel();
+              } catch (err) {
+                console.warn("Reader cancel failed:", err);
+              }
               
-              await updateMessageDisplay(thinkSpan, token, false);
-              await formatTextStreaming(reasonText, thinkSpan.elt);
-            } else if (type === "normal") {
-              mainText += token;
-              aiText += token;
+              console.log("Searching the Web!");
+              let terms = !tool ? JSON.parse(toolData) : tool;
               
-              await updateMessageDisplay(messageSpan, token, false);
-              await formatTextStreaming(mainText, messageSpan.elt);
+              searchDiv.style("display", "block");
+              searchDiv.parent(messageSpan);
               
-              if (thinkSpan) {
-                messageSpan.elt.prepend(thinkSpan.elt);
+              let webData = "";
+              let results = await searchResponse(terms.queries || terms, messageSpan, searchDiv);
+              
+              for (let result of results) {
+                webData += `--Begin Result--\nTitle (if any): ${result.title}\nLink: ${result.link}\nContent: ${result.content}\n--End Result--\n\n`;
+              }
+              
+              history.push({
+                role: "assistant",
+                content: reasonText + mainText
+              });
+              history.push({
+                role: "user",
+                content: `**Web Search Data:**\n${webData}\n\n**Previous Message:** ${reasonText + mainText}`
+              });
+              
+              toolData = null;
+              await updateMessageDisplay(thinkSpan, "\n\n", false);
+              
+              searchDiv.remove();
+              if (!stop) return getResponse(`**Web Search Data:**\n${webData}\n\n**Previous Message:** ${reasonText + mainText}`, thinkSpan, messageSpan, searchDiv, reasonText, mainText, true, true);
+            }
+            
+            prevType = type;
+            if (token) {
+              for (let toolToken of toolTokens) {
+                token = token.replace(toolToken, "");
+              }
+              
+              if (type === "reason") {
+                reasonText += token;
+                thinkSpan.style("display", "block");
+
+                await updateMessageDisplay(thinkSpan, token, false);
+                await formatTextStreaming(reasonText, thinkSpan.elt);
+              } else if (type === "normal") {
+                mainText += token;
+                aiText += token;
+
+                await updateMessageDisplay(messageSpan, token, false);
+                await formatTextStreaming(mainText, messageSpan.elt);
+
+                if (thinkSpan) {
+                  messageSpan.elt.prepend(thinkSpan.elt);
+                }
               }
             }
             
@@ -857,17 +1005,281 @@ async function getResponse(query) {
 
     formatMath(messageSpan.elt);
     history.push({ role: "assistant", content: mainText });
+    
+    if (searchDiv) try { 
+      searchDiv.remove(); 
+    } catch (e) { 
+      searchDiv.style("display", "none"); 
+    }
+    if (messageSpan?.sources && messageSpan.sources.length) {
+      messageSpan.style("position", "relative");
+    
+      let sBtn = createButton("Sources");
+      sBtn.class("sources-btn");
+      sBtn.parent(messageSpan);
+      sBtn.style("position", "absolute");
+      sBtn.style("right", "8px");
+      sBtn.style("bottom", "6px");
+      sBtn.style("background", colors.btn);
+      sBtn.style("color", colors.tx);
+      sBtn.style("border", "none");
+      sBtn.style("border-radius", "8px");
+      sBtn.style("padding", "4px 8px");
+      sBtn.style("font-size", "12px");
+      sBtn.style("cursor", "pointer");
+    
+      sBtn.mousePressed(() => toggleSourcesSidebar(messageSpan.sources));
+    }
   }
   
+  stop = false;
   input.elt.focus();
-  
+
   responding = false;
   icon = "";
-  
+
   tps = 0;
   tokenTimes = [];
   
   maintainScrollPosition();
+}
+
+async function searchResponse(terms, span, searchDiv) {
+  if (terms.length === 0) return [];
+  searchDiv.style("display", "block");
+  
+  scrolled = false;
+  responding = true;
+  
+  let aSpans = [];
+  let webData = [];
+  
+  output.elt.scrollTo({
+    top: output.elt.scrollHeight * 2,
+    behavior: "instant",
+  });
+
+  for (let q of terms.slice(0, 1)) {
+    let urlSpan = createSpan(`<br>${q}<br>`)
+      .style("background", "transparent")
+      .style("font-size", "16px")
+      .style("color", "white")
+      .style("text-align", "center")
+      .style("text-decoration", "underline")
+      .style("font-style", "italic")
+      .style("padding", "5px")
+      .style("margin", "5px")
+      .parent(searchDiv)
+      
+    let results = JSON.parse(await webSearch(q)).results;
+    output.elt.scrollTo({
+      top: output.elt.scrollHeight * 2,
+      behavior: "instant",
+    });
+    
+    if (results) {
+      let items = results.slice(0, 9);
+      console.log(`${q}: ${items.length}`);
+
+      for (let item of items) {
+        console.log(item.url);
+        aSpan = createA(
+          item.url, 
+          item.url.trim().replace("https://www.", "").slice(0, 40) + "..."     
+        ).size(150, 30)
+          .style("background", "rgb(25, 25, 25)")
+          .style("border-radius", "15px")
+          .style("font-size", "16px")
+          .style("color", "white")
+          .style("text-align", "center")
+          .style("text-decoration", "none")
+          .style("font-style", "italic")
+          .style("padding", "5px")
+          .style("margin", "5px")
+          .attribute("target", "_blank")
+          .parent(searchDiv);
+        aSpans.push(aSpan);
+        
+        output.elt.scrollTo({
+          top: output.elt.scrollHeight * 10,
+          behavior: "instant",
+        });
+        
+        try {
+          let content = await webSearch(item.url);
+          webData.push({
+            title: item.title || "",
+            link: item.url,
+            content: content.slice(0, 10000)
+          });
+        } catch (err) {
+          console.error("Web Search Error:", err);
+          return [];
+        }
+      }
+    }
+  }
+  
+  if (span && webData && webData.length) span.sources = webData;
+  console.log(webData);
+  
+  return webData;
+}
+
+async function webSearch(tx) {
+  let url = "https://<url>.ezkidtrix.workers.dev/?";
+  let res = await fetch(`${url}${tx.startsWith("https://") ? "url" : "q"}=${tx}`);
+  
+  let results = await res.text();
+  return results;
+}
+
+function toggleSourcesSidebar(srcs) {
+  if (!sourcesSidebar) {
+    sourcesSidebar = document.createElement("div");
+    sourcesSidebar.style.cssText = `
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: 360px;
+      max-width: 85vw;
+      background: #1b1b1b;
+      color: #eee;
+      box-shadow: -20px 0 50px rgba(0,0,0,0.6);
+      transform: translateX(100%);
+      transition: transform .28s ease, opacity .28s ease;
+      z-index: 9999;
+      padding: 12px;
+      overflow: auto;
+      font-family: system-ui, -apple-system, sans-serif;
+      scrollbar-width: thin;
+      scrollbar-color: #FFFFFF transparent
+    `;
+    
+    document.body.appendChild(sourcesSidebar);
+  }
+
+  if (sourcesSidebar.open && sourcesSidebar.currentSrc === srcs) {
+    sourcesSidebar.style.transform = "translateX(100%)";
+    
+    sourcesSidebar.open = false;
+    sourcesSidebar.currentSrc = null;
+    return;
+  }
+
+  sourcesSidebar.open = true;
+  sourcesSidebar.currentSrc = srcs;
+
+  let html = "";
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+  
+  html += "<strong>Sources</strong>";
+  html +=
+    '<button id="__src_close" style="background:transparent;border:1px solid rgba(255,255,255,0.06);' +
+    'color:#eee;padding:6px;border-radius:6px;cursor:pointer">Close</button>';
+  
+  html += "</div>";
+  html += '<div style="gap:10px;display:flex;flex-direction:column">';
+
+  for (let s of srcs) {
+    let t = (s.title || "").replace(/</g, "&lt;").replace(/>/g, "&gt;") || s.link;
+    html +=
+      "<div style=\"padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)\">" +
+      "<a href=\"" +
+      s.link +
+      "\" target=\"_blank\" style=\"color:inherit;text-decoration:none;font-weight:600\">" +
+      
+      t +
+      "</a>" +
+      "<div style=\"font-size:12px;color:#bbb;margin-top:6px;word-break:break-all\">" +
+      s.link +
+      "</div>" +
+      "</div>";
+  }
+
+  html += "</div>";
+
+  sourcesSidebar.innerHTML = html;
+
+  let closeBtn = sourcesSidebar.querySelector("#__src_close");
+  if (closeBtn) closeBtn.onclick = () => toggleSourcesSidebar(srcs);
+
+  sourcesSidebar.style.transform = "translateX(0)";
+}
+
+function isJSON(obj) {
+  try {
+    JSON.parse(obj);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function checkTool(token) {
+  let toolTokens = [
+    "search",
+    "<｜tool▁calls▁begin｜>", 
+    "<｜tool▁call▁begin｜>", 
+    "<｜tool▁sep｜>", 
+    "<｜tool▁call▁end｜>", 
+    "<｜tool▁calls▁end｜>"
+  ];
+  
+  if (!checkTool.buffer) checkTool.buffer = "";
+  if (!checkTool.active) checkTool.active = false;
+  
+  if (token.includes("<｜tool▁calls▁begin｜>")) {
+    checkTool.active = true;
+    checkTool.buffer = "";
+    
+    return null;
+  }
+
+  if (checkTool.active) {
+    checkTool.buffer += token;
+    
+    if (token.includes("<｜tool▁calls▁end｜>")) {
+      checkTool.active = false;
+      let raw = checkTool.buffer;
+      
+      for (let toolToken of toolTokens) {
+        raw = raw.replace(toolToken, "");
+        raw = raw.trim();
+      }
+      
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw;
+      }
+    }
+  }
+
+  return null;
+}
+
+function convertFormat(tool_calls) {
+  if (!tool_calls || !tool_calls.length) return "";
+  let out = "<｜tool▁calls▁begin｜>";
+  
+  for (let tc of tool_calls) {
+    let name = tc.name || tc.function.arguments || tc.tool || "";
+    
+    let argsRaw = tc.arguments ?? tc.args ?? tc.parameters ?? "";
+    let argsStr = "";
+    
+    try {
+      argsStr = typeof argsRaw === "string" ? argsRaw : JSON.stringify(argsRaw);
+    } catch (e) {
+      argsStr = String(argsRaw);
+    }
+    out += "<｜tool▁call▁begin｜>" + name + "<｜tool▁sep｜>" + argsStr + "<｜tool▁call▁end｜>";
+  }
+  
+  out += "<｜tool▁calls▁end｜>";
+  return out;
 }
 
 function updateTPS() {
@@ -882,6 +1294,95 @@ function updateTPS() {
   
   let currTps = tokenTimes.length / (tokenMs / 1000);
   tps = tps ? (tps * (1 - tokenAlpha) + currTps * tokenAlpha) : currTps;
+}
+
+async function addMessage(tx, user, animate = false) {
+  let messageContainer = createDiv();
+  messageContainer.class("message-container");
+  messageContainer.style("display", "flex");
+  messageContainer.style("margin", "16px 0");
+  messageContainer.style("padding", "0 8px");
+  
+  if (user) {
+    messageContainer.style("justify-content", "flex-end");
+  } else {
+    messageContainer.style("justify-content", "flex-start");
+  }
+
+  let messageBubble = createDiv();
+  messageBubble.class("message-bubble");
+  messageBubble.style("max-width", "75%");
+  messageBubble.style("padding", "12px 16px");
+  messageBubble.style("border-radius", "16px");
+  messageBubble.style("font-size", "14px");
+  messageBubble.style("line-height", "1.5");
+  messageBubble.style("white-space", "normal")
+  messageBubble.style("word-wrap", "break-word");
+  messageBubble.style("word-break", "break-word");
+  messageBubble.style("hyphens", "auto");
+  messageBubble.style("overflow-wrap", "break-word");
+  
+  if (user) {
+    messageBubble.style("background", "rgb(50, 50, 50)");
+    messageBubble.style("color", "white");
+    messageBubble.style("border-bottom-right-radius", "4px");
+  } else {
+    messageBubble.style("background", "rgb(30, 30, 30)");
+    messageBubble.style("color", "rgb(220, 240, 220)");
+    messageBubble.style("border", "1px solid rgb(20, 20, 20)");
+    messageBubble.style("border-bottom-left-radius", "4px");
+  }
+  
+  messageBubble.parent(messageContainer);
+  messageContainer.parent(output);
+  
+  if (!user) {
+    messageContainer.style("flex-direction", "column");
+    messageContainer.style("align-items", "flex-start");
+    
+    let copyBtn = createButton("Copy");
+    copyBtn.class("copy-msg");
+    copyBtn.style("background", colors.btn);
+    copyBtn.style("color", colors.tx);
+    copyBtn.style("border", "none");
+    copyBtn.style("border-radius", "8px");
+    copyBtn.style("margin", "3px 3px")
+    copyBtn.style("font-size", "15px");
+    copyBtn.style("font-family", "system-ui, -apple-system, sans-serif");
+    copyBtn.style("font-weight", "100");
+    copyBtn.style("cursor", "pointer");
+    copyBtn.style("transition", "all 0.2s ease");
+    copyBtn.style("width", "50px");
+    copyBtn.style("height", "25px");
+    copyBtn.style("text-align", "center");
+    copyBtn.style("position", "relative");
+    copyBtn.style("align-self", "flex-start");
+    copyBtn.style("margin-top", "3px");
+    copyBtn.parent(messageContainer);
+    
+    copyBtn.mousePressed(() => {
+      navigator.clipboard.writeText(
+        aiText || 0
+      ).catch(() => {
+        let ta = document.createElement("textarea");
+        
+        ta.value = aiText || 0;
+        ta.style.position = "fixed";
+        
+        document.body.appendChild(ta);
+        ta.select();
+        
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      });
+    });
+  }
+
+  if (tx) {
+    await updateMessageDisplay(messageBubble, tx.replace(/\n/g, "<br>"), true);
+  }
+
+  return messageBubble;
 }
 
 async function updateMessageDisplay(span, token, isFinal) {
@@ -911,26 +1412,18 @@ async function formatTextStreaming(text, container) {
     let mathCounter = 0;
     
     let processedText = text
-      .replace(/\\\[([\s\S]*?)\\\]/g, (match, content) => {
-        let placeholder = `MATHBLOCK${mathCounter++}ENDMATH`;
-        mathBlocks.push(`\\[${content}\\]`);
-        return placeholder;
-      })
       .replace(/\\\(([\s\S]*?)\\\)/g, (match, content) => {
         let placeholder = `MATHBLOCK${mathCounter++}ENDMATH`;
         mathBlocks.push(`\\(${content}\\)`);
+        
         return placeholder;
       })
-      .replace(/\$\$([\s\S]*?)\$\$/g, (match, content) => {
+      .replace(/\\\[(.*?[^\\])\\\]/g, (match, content) => {
         let placeholder = `MATHBLOCK${mathCounter++}ENDMATH`;
-        mathBlocks.push(`$$${content}$$`);
+        mathBlocks.push(`\\[${content}\\]`);
+        
         return placeholder;
       })
-      .replace(/(?<!\\)\$(?!\$)([\s\S]*?)(?<!\\)\$(?!\$)/g, (match, content) => {
-        let placeholder = `MATHBLOCK${mathCounter++}ENDMATH`;
-        mathBlocks.push(`$${content}$`);
-        return placeholder;
-      });
 
     let htmlContent = md.render(processedText);
     mathBlocks.forEach((mathBlock, i) => {
@@ -994,7 +1487,7 @@ async function formatMath(el) {
   }
 }
 
-async function shouldSearch(query) {
+async function sumContent(result) {
   try {
     let res = await fetch(url, {
       method: "POST",
@@ -1002,219 +1495,28 @@ async function shouldSearch(query) {
       body: JSON.stringify({
         model: "deepseek-ai/deepseek-v3.1-terminus",
         messages: [
-          { "role": "system", "content": `
-            You are a search decision agent. Analyze the user's query and conversation history, then respond with ONLY "true" or "false".
-
-            Respond "true" if the query needs:
-            - Recent events, news, or current information
-            - Real-time data (weather, stocks, scores, etc.)
-            - Facts that may have changed recently
-            - Explicit search request from user
-
-            Respond "false" if the query involves:
-            - General knowledge or established facts
-            - Casual conversation or creative requests
-            - Coding, math, or explanations of stable topics
-            - Information already present in conversation history
-
-            The conversation history will be provided in the messages array. Base your decision on the full context.
-        ` },
-          ...history,
-          { "role": "user", "content": "User Request:\n" + query }
+          { "role": "system", "content": "You are a professional AI Web Search Summarizer. Your objective to summarize the user's given web results in a 2-3 sentence quick and concise summary of their text and respond with nothing else other than the summary. Make sure you provide the date of each result (if provided in their result) and also provide the source link after the summary." },
+          { "role": "user", "content": result }
         ],
         stream: false,
-        max_tokens: 1,
-        chat_template_kwargs: {
-          thinking: false
-        }
-      })
-    });
-    if (res.status !== 200) throw new Error("AI Web Search failed!");
-    
-    let content = (await res.json())?.choices[0]?.message?.content;
-    return content === "true" ? true : false;
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-async function searchResponse(query, span) {
-  queries = (await getQueries(query))?.queries;
-  if (queries.length === 0) return;
-  
-  scrolled = false;
-  responding = true;
-  
-  let urlSpan, webResults = "";
-  let searchDiv = createDiv(`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(90 12 12)" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h20" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="search-text"> Searching the Web...</span>`)
-    .style("background", "rgb(50, 50, 50)")
-    .style("border-radius", "10px")
-    .style("font-size", "16px")
-    .style("padding", "10px")
-    .parent(span);
-  
-  output.elt.scrollTo({
-    top: output.elt.scrollHeight * 2,
-    behavior: "instant",
-  });
-
-  for (let q of queries.slice(0, 4)) {
-    urlSpan = createSpan("<br>" + q)
-      .style("font-style", "italic")
-      .style("padding", "5px")
-      .parent(searchDiv)
-    
-    output.elt.scrollTo({
-      top: output.elt.scrollHeight * 2,
-      behavior: "instant",
-    });
-    let results = JSON.parse(await webSearch(q)).organic;
-    
-    if (results) {
-      let items = results.slice(0, 25);
-
-      for (let item of items) {
-        let content = await webSearch(item.link);
-        
-        webResults += `---START-RESULT--\n${content.substring(0, 320)}\nURL: ${item.link}\n---END-RESULT---\n\n`;
-      }
-      
-      searchDiv.remove(urlSpan);
-      searchDiv.remove();
-      
-      return webResults;
-    }
-  }
-}
-
-async function webSearch(tx) {
-  let url = "https://<url>.ezkidtrix.workers.dev/?";
-  let res = await fetch(`${url}${tx.startsWith("https://") ? "url" : "q"}=${tx}`);
-  
-  let results = await res.text();
-  return results;
-}
-
-async function getQueries(query) {
-  try {
-    let res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "deepseek-ai/deepseek-v3.1-terminus",
-        messages: [
-          { "role": "system", "content": `Generate 1–5 relevant web search queries without any additional formatting other than this JSON form {"queries":["...", ...]} based on the user's request and prior context to improve result accuracy and clarity. User's Question: ${query}` },
-          ...history,
-        ],
-        stream: false,
-        max_tokens: 100,
+        max_tokens: 256,
         temperature: 0.7,
         chat_template_kwargs: {
           thinking: false
         }
       })
     });
-    if (res.status !== 200) throw new Error("AI Web Search failed!");
+    if (res.status !== 200) throw new Error("AI Web Search Summarization failed!");
     
-    let content = (await res.json()).choices[0].message.content;
-    try {
-      return JSON.parse(content);
-    } catch (err) {
-      responding = false;
-      loading = false;
-      
-      icon = "";
-      console.error(err);
-    }
+    let json = await res.json();
+    let tx = json?.choices?.[0]?.message?.content || "";
+    
+    return tx;
   } catch (err) {
     console.error(err);
   }
-}
-
-async function addMessage(tx, user, animate = false) {
-  let messageContainer = createDiv();
-  messageContainer.class("message-container");
-  messageContainer.style("display", "flex");
-  messageContainer.style("margin", "16px 0");
-  messageContainer.style("padding", "0 8px");
-  
-  if (user) {
-    messageContainer.style("justify-content", "flex-end");
-  } else {
-    messageContainer.style("justify-content", "flex-start");
-  }
-
-  let messageBubble = createDiv();
-  messageBubble.class("message-bubble");
-  messageBubble.style("max-width", "75%");
-  messageBubble.style("padding", "12px 16px");
-  messageBubble.style("border-radius", "16px");
-  messageBubble.style("font-size", "14px");
-  messageBubble.style("line-height", "1.5");
-  messageBubble.style("word-wrap", "break-word");
-  messageBubble.style("word-break", "break-word");
-  
-  if (user) {
-    messageBubble.style("background", "rgb(50, 50, 50)");
-    messageBubble.style("color", "white");
-    messageBubble.style("border-bottom-right-radius", "4px");
-  } else {
-    messageBubble.style("background", "rgb(30, 30, 30)");
-    messageBubble.style("color", "rgb(220, 240, 220)");
-    messageBubble.style("border", "1px solid rgb(20, 20, 20)");
-    messageBubble.style("border-bottom-left-radius", "4px");
-  }
-  
-  messageBubble.parent(messageContainer);
-  messageContainer.parent(output);
-  
-  if (!user) {
-    messageContainer.style("flex-direction", "column");
-    messageContainer.style("align-items", "flex-start");
     
-    let copyBtn = createButton("Copy");
-    copyBtn.class("copy-msg");
-    copyBtn.style("background", colors.btn);
-    copyBtn.style("color", colors.tx);
-    copyBtn.style("border", "none");
-    copyBtn.style("border-radius", "8px");
-    copyBtn.style("margin", "3px 3px")
-    copyBtn.style("font-size", "15px");
-    copyBtn.style("font-family", "system-ui, -apple-system, sans-serif");
-    copyBtn.style("font-weight", "100");
-    copyBtn.style("cursor", "pointer");
-    copyBtn.style("transition", "all 0.2s ease");
-    copyBtn.style("width", "50px");
-    copyBtn.style("height", "25px");
-    copyBtn.style("text-align", "center");
-    copyBtn.style("position", "relative");
-    copyBtn.style("align-self", "flex-start");
-    copyBtn.style("margin-top", "3px");
-    copyBtn.parent(messageContainer);
-    
-    copyBtn.mousePressed(() => {
-      navigator.clipboard.writeText(
-        aiText || 0
-      ).catch(() => {
-        let ta = document.createElement("textarea");
-        
-        ta.value = aiText || 0;
-        ta.style.position = "fixed";
-        
-        document.body.appendChild(ta);
-        ta.select();
-        
-        try { document.execCommand("copy"); } catch (e) {}
-        document.body.removeChild(ta);
-      });
-    });
-  }
-
-  if (tx) {
-    await updateMessageDisplay(messageBubble, tx.replace(/\n/g, "<br>"), true);
-  }
-
-  return messageBubble;
+  return "";
 }
 
 function getTime() {
@@ -1308,4 +1610,3 @@ function delay(ms, finalBusy = 1e-10) {
 
 function destroyDelayWorker() {
   worker.terminate();
-}

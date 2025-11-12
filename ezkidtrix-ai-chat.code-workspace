@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "ezkidtrix-ai-chat",
+			"path": "."
+		},
+		{
+			"name": "libraries",
+			"path": "../../p5.js ai chat ui/libraries"
+		}
+	],
+	"settings": {}
+}
