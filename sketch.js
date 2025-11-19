@@ -5,7 +5,7 @@ let [models, history] = [{
   "DeepSeek R1": "deepseek-ai/deepseek-r1-0528",
   "GPT OSS 120B": "openai/gpt-oss-120b",
   "GPT OSS 20B": "openai/gpt-oss-20b",
-  "Qwen3 235B": "qwen/qwen3-235b-a22b",    
+  "Qwen3 235B": "qwen/qwen3-235b-a22b",
   "Qwen3 Coder 480B": "qwen/qwen3-coder-480b-a35b-instruct",
   "Qwen3 Next 80B": "qwen/qwen3-next-80b-a3b-thinking",
   "Llama 4 Maverick": "meta/llama-4-maverick-17b-128e-instruct",
@@ -312,15 +312,14 @@ function elements() {
     charCounter.elt.innerText = `${input.value().length}/100000`;
   });
   
-  title = createSpan(`<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 255 234" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,234) scale(0.1,-0.1)" fill="
-#ffffff" stroke="none"><path d="M693 1996c-134-44-195-137-195-296 1-210 123-465 355-738 109-129 255-262 287-262 31 0 60 27 60 56 0 12-58 79-147 170-194 196-313 365-388 549-59 144-68 271-25 342 34 56 63 68 165 68 92-1 179-22 267-66 21-11 46-19 56-19 28 0 54 34 50 67-2 22-14 34-53 55-133 72-335 106-432 74z"/><path d="M1700 1995c-227-48-525-236-756-476-129-135-146-166-106-202 36-33 56-21 213 136 170 168 285 255 451 342 233 121 423 126 481 12 37-72 21-220-38-354-14-31-25-66-25-79 0-31 26-54 61-54 27 0 33 6 64 73 54 112 78 223 73 331-3 67-10 102-25 131-28 53-88 110-138 131-53 22-175 27-255 9z"/><path d="M1438 1669c-11-6-18-22-18-40 0-25 22-51 134-162 162-160 275-311 356-472 93-187 119-334 74-420-33-63-72-80-179-79-80 0-101 4-185 38-52 21-106 40-120 43-34 6-62-17-62-51 0-38 24-58 117-94 119-47 208-65 291-59 88 6 130 24 188 77 68 63 89 128 83 255-6 120-29 201-99 340-102 204-293 447-461 587-58 48-86 57-119 37z"/><path d="M1282 1387c-6-7-16-35-23-62-18-75-24-82-94-105-49-16-65-26-65-40 0-22 20-35 70-44 52-9 77-31 84-73 17-94 26-113 51-113 25 0 34 19 51 113 7 44 28 61 97 78 79 19 74 57-11 79-62 15-78 31-93 93-19 84-40 107-67 74z"/><path d="M1622 981c-317-341-730-555-915-473-85 38-111 117-84 256 9 45 30 115 47 155 16 41 30 82 30 92 0 29-29 50-64 47-27-3-35-11-63-68-72-145-96-327-59-437 21-63 74-121 142-154 42-21 63-24 149-23 85 0 114 5 195 33 185 63 367 175 557 342 113 100 243 242 243 267 0 31-29 62-58 62-22 0-47-20-120-99z"/></g></svg>AI Chat`);
+  title = createSpan(`<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="80px" height="80px" viewBox="0 0 425 425"  preserveAspectRatio="xMidYMid meet"><g transform="translate(0, 1024) scale(0.1, -0.1)" fill="#fff" stroke="none"><path d="M3120 9455 c-60 -19 -123 -74 -152 -133 -22 -46 -23 -55 -23 -302 0 -223 2 -261 18 -302 25 -64 101 -132 167 -149 l49 -13 3 -95 c3 -94 3 -96 32 -109 37 -18 45 -15 207 105 l134 98 190 5 c185 5 191 6 237 33 53 31 94 79 114 134 18 51 20 507 2 565 -16 53 -87 131 -140 154 -39 17 -77 19 -418 21 -301 2 -384 -1 -420 -12z m790 -140 c59 -30 60 -37 60 -302 l0 -243 -29 -32 -29 -33 -199 -5 -198 -5 -92 -67 c-51 -38 -95 -68 -98 -68 -3 0 -5 23 -5 50 0 69 -22 90 -95 90 -67 0 -109 20 -130 60 -22 43 -22 457 1 505 30 63 40 65 432 65 294 0 358 -3 382 -15z"/> <path d="M1029 9414 c-71 -30 -69 -11 -69 -592 l0 -521 26 -20 c22 -17 41 -21 110 -21 l84 0 0 -121 c0 -110 -2 -120 -17 -115 -10 3 -110 25 -223 51 -172 38 -209 44 -228 34 -12 -7 -25 -22 -28 -33 -4 -19 -51 -266 -245 -1283 -56 -293 -57 -304 -7 -337 25 -17 589 -176 623 -176 24 0 61 24 74 48 5 9 25 109 45 222 20 113 39 210 41 215 3 6 3 -88 0 -207 l-5 -217 26 -30 26 -31 769 0 770 0 24 25 c30 29 29 25 9 268 -8 104 -14 191 -11 193 2 2 27 -96 55 -218 29 -122 59 -232 67 -245 9 -12 26 -25 39 -29 19 -4 469 73 795 137 61 12 101 45 101 83 0 13 -33 161 -74 328 -186 756 -307 1246 -317 1274 -18 56 -40 58 -259 15 -107 -21 -198 -36 -202 -34 -5 2 -8 80 -8 173 0 198 -1 200 -102 200 l-57 0 -3 454 c-3 438 -4 455 -23 476 -45 51 -24 50 -927 49 -720 0 -848 -2 -879 -15z m1681 -564 l0 -440 -60 0 -60 0 0 190 c0 231 1 230 -110 230 l-70 0 0 50 c0 37 -5 55 -20 70 -19 19 -33 20 -265 20 -232 0 -246 -1 -265 -20 -15 -15 -20 -33 -20 -70 l0 -50 -153 0 c-187 0 -197 -4 -197 -86 l0 -54 -58 0 c-82 0 -102 -16 -102 -86 l0 -54 -50 0 c-69 0 -100 -30 -100 -95 0 -45 0 -45 -35 -45 l-35 0 0 435 0 435 413 2 c226 2 586 4 800 6 l387 3 0 -441z m-440 -70 c0 -73 20 -90 110 -90 l70 0 0 -194 0 -195 26 -20 c19 -15 41 -21 75 -21 l49 0 0 -185 0 -185 -635 0 -635 0 0 255 0 255 41 0 c41 0 78 14 91 34 4 6 8 32 8 57 l0 47 66 4 c79 5 94 19 94 89 l0 47 156 4 c150 3 157 4 175 27 13 16 19 39 19 72 l0 49 145 0 145 0 0 -50z m548 -697 c-87 -111 -78 -116 -78 40 l0 137 28 0 c15 1 41 7 57 14 l30 13 3 -75 c3 -74 3 -74 -40 -129z m640 -420 c45 -186 107 -441 137 -567 31 -125 54 -230 52 -233 -6 -5 -668 -135 -672 -131 -2 2 -56 231 -120 509 l-117 506 62 80 61 80 117 22 c64 12 173 32 242 45 69 13 132 25 140 25 12 1 34 -74 98 -336z m-2484 262 c220 -49 206 -44 206 -70 0 -41 22 -86 46 -95 13 -5 22 -15 19 -22 -4 -12 -16 -83 -116 -663 -23 -132 -44 -243 -48 -247 -5 -6 -460 97 -469 107 -3 2 35 208 83 457 47 249 92 479 98 511 6 31 14 57 18 57 5 0 78 -16 163 -35z m536 -388 c0 -162 3 -218 13 -231 12 -17 28 -19 137 -17 71 1 129 6 137 12 9 8 13 66 15 228 l3 216 148 3 147 3 0 -289 c0 -244 2 -291 16 -310 14 -20 23 -22 125 -22 161 0 149 -26 149 330 l0 290 104 0 104 0 6 -57 c6 -57 15 -160 56 -683 12 -146 27 -337 34 -425 8 -88 12 -163 9 -167 -2 -5 -310 -8 -684 -8 l-679 0 0 93 c0 68 28 1229 30 1245 0 1 29 2 65 2 l65 0 0 -213z m210 73 l0 -141 -57 3 -58 3 -3 124 c-1 69 0 131 2 138 4 9 24 13 61 13 l55 0 0 -140z m590 -75 l0 -215 -55 0 -55 0 0 215 0 215 55 0 55 0 0 -215z m-1083 -752 c-4 -3 -7 0 -7 7 0 7 3 10 7 7 3 -4 3 -10 0 -14z m-397 -47 l225 -54 -3 -28 c-5 -46 -33 -207 -37 -215 -4 -6 -464 117 -474 126 -4 4 28 190 36 213 3 6 10 12 17 12 6 0 112 -24 236 -54z m2882 -101 c11 -48 16 -90 12 -95 -16 -14 -669 -128 -675 -118 -9 13 -42 168 -37 173 1 1 113 24 248 50 135 26 286 55 335 64 50 10 91 17 93 16 2 -2 12 -42 24 -90z"/> <path d="M1640 8370 l0 -180 85 0 85 0 0 164 c0 90 -3 171 -6 180 -5 13 -22 16 -85 16 l-79 0 0 -180z"/> <path d="M2130 8370 l0 -180 85 0 85 0 0 180 0 180 -85 0 -85 0 0 -180z"/></g></svg><span class="icon-label" style="margin: 0 auto;">Ezkidtrix's AI Chat</span>`);
   title.size(250, 50);
-  title.position(windowWidth / 2 - title.width / 2, windowHeight / 2 - 110);
-  title.style("background", "transparent");
-  title.style("border", "none");
-  title.style("outline", "none");
-  title.style("color", "rgb(220, 240, 220)");
+  title.position(windowWidth / 2 - title.width / 2, windowHeight / 2 - 140);
+  title.style("display", "block");
+  title.style("align-items", "center");
+  title.style("justify-content", "center");
   title.style("text-align", "center");
+  title.style("color", "rgb(220, 240, 220)");
   title.style("font-weight", "bold");
   title.style("font-size", "20px");
   title.style("font-family", "system-ui, -apple-system, sans-serif");
@@ -460,6 +459,19 @@ function elements() {
   
   handleColorPicker();
   setupColorPicker();
+  
+  let btnColor = getItem("color");
+  colors.btn = btnColor || colors.btn;
+  
+  for (let b of btns) {
+    if (b) b.style("background", colors.btn);
+  }
+
+  let copyBtn = document.querySelector(".copy-msg");
+  if (copyBtn) new p5.Element(copyBtn).style("background", colors.btn);
+
+  let sourcesBtn = document.querySelector(".sources-btn");
+  if (sourcesBtn) new p5.Element(sourcesBtn).style("background", colors.btn);
 }
 
 function handleDropdown() {
@@ -621,14 +633,12 @@ function updateSVGradient() {
 }
 
 function updatePreview() {
-  let c = hsvToRgb(currentHue / 360, currentSat / 100, currentVal / 100);
+  let c = hsvToRgb(currentHue, currentSat / 100, currentVal / 100);
   let hex = rgbToHex(c.r, c.g, c.b);
   
   if (hex !== pickedColor) {
     pickedColor = hex;
-    
     colors.btn = pickedColor;
-    colors.btn2 = rgbToHex(c.r - 75, c.g, c.b);
     
     for (let b of btns) {
       if (b) b.style("background", colors.btn);
@@ -639,6 +649,8 @@ function updatePreview() {
     
     let sourcesBtn = document.querySelector(".sources-btn");
     if (sourcesBtn) new p5.Element(sourcesBtn).style("background", colors.btn);
+    
+    if (colors.btn !== "#ff0000") localStorage.setItem("color", hex);
   }
   
   preview.style.background = pickedColor;
@@ -646,24 +658,37 @@ function updatePreview() {
 
 function hsvToRgb(h, s, v) {
   let r, g, b;
-  let i = floor(h * 6);
+  h = h % 360;
   
-  let f = h * 6 - i;
-  let p = v * (1 - s);
+  s = max(0, min(1, s));
+  v = max(0, min(1, v));
+
+  if (s === 0) {
+    r = g = b = v;
+  } else {
+    let i = floor(h / 60);
+    
+    let f = (h / 60) - i;
+    let p = v * (1 - s);
+    
+    let q = v * (1 - f * s);
+    let t = v * (1 - (1 - f) * s);
   
-  let q = v * (1 - f * s);
-  let t = v * (1 - (1 - f) * s);
-  
-  switch (i % 6) {
-    case 0: r = v; g = t; b = p; break;
-    case 1: r = q; g = v; b = p; break;
-    case 2: r = p; g = v; b = t; break;
-    case 3: r = p; g = q; b = v; break;
-    case 4: r = t; g = p; b = v; break;
-    case 5: r = v; g = p; b = q; break;
+    switch (i % 6) {
+      case 0: r = v; g = t; b = p; break;
+      case 1: r = q; g = v; b = p; break;
+      case 2: r = p; g = v; b = t; break;
+      case 3: r = p; g = q; b = v; break;
+      case 4: r = t; g = p; b = v; break;
+      case 5: r = v; g = p; b = q; break;
+    }
   }
   
-  return { r: round(r * 255), g: round(g * 255), b: round(b * 255) };
+  return { 
+    r: round(r * 255), 
+    g: round(g * 255), 
+    b: round(b * 255) 
+  };
 }
 
 function rgbToHex(r, g, b) {
@@ -777,11 +802,11 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: currentModel,
-          temperature: 0.2,
+          temperature: 0.3,
           top_p: 0.9,
           messages,
           stream: true,
-          max_tokens: 32768,
+          max_tokens: 16384,
           chat_template_kwargs: {
             thinking: true
           },
@@ -841,6 +866,7 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
           
           try {
             await reader.cancel();
+            reader.releaseLock?.();
           } catch (err) {
             console.warn("Reader cancel failed:", err);
           }
@@ -870,6 +896,7 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
               
               try {
                 await reader.cancel();
+                reader.releaseLock?.();
               } catch (err) {
                 console.warn("Reader cancel failed:", err);
               }
@@ -923,9 +950,13 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
               toolData += delta?.tool_calls[0].function.arguments;
             }
             
+            mainText = mainText.replace(/search\{[^}]*\}/g, "");
+            reasonText = reasonText.replace(/search\{[^}]*\}/g, "");     
+            
             if ((toolData && isJSON(toolData) || tool) && !stop) {
               try {
                 await reader.cancel();
+            reader.releaseLock?.();
               } catch (err) {
                 console.warn("Reader cancel failed:", err);
               }
@@ -952,10 +983,12 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
                 content: `**Web Search Data:**\n${webData}\n\n**Previous Message:** ${reasonText + mainText}`
               });
               
-              toolData = null;
-              await updateMessageDisplay(thinkSpan, "\n\n", false);
+              mainText += "<br><br>"
+              reasonText += "<br><br>"
               
+              toolData = null;
               searchDiv.remove();
+              
               if (!stop) return getResponse(`**Web Search Data:**\n${webData}\n\n**Previous Message:** ${reasonText + mainText}`, thinkSpan, messageSpan, searchDiv, reasonText, mainText, true, true);
             }
             
@@ -1078,7 +1111,7 @@ async function searchResponse(terms, span, searchDiv) {
     });
     
     if (results) {
-      let items = results.slice(0, 9);
+      let items = results.slice(0, 10);
       console.log(`${q}: ${items.length}`);
 
       for (let item of items) {
@@ -1301,7 +1334,7 @@ async function addMessage(tx, user, animate = false) {
   messageContainer.class("message-container");
   messageContainer.style("display", "flex");
   messageContainer.style("margin", "16px 0");
-  messageContainer.style("padding", "0 8px");
+  messageContainer.style("padding", "0 10px");
   
   if (user) {
     messageContainer.style("justify-content", "flex-end");
@@ -1392,7 +1425,7 @@ async function updateMessageDisplay(span, token, isFinal) {
   if (isFinal) {
     lastChild.innerHTML = lastChild.innerHTML
       .replace(/<think>.*<\/think>/gs, "")
-      .replace("<｜end▁of▁sentence｜>", "");
+      .replace("<｜end▁of▁sentence｜>", "")
     await formatMath(lastChild);
     
     if (ready) {
@@ -1402,7 +1435,7 @@ async function updateMessageDisplay(span, token, isFinal) {
   } else {
     lastChild.innerHTML = lastChild.innerHTML
       .replace(/<think>.*<\/think>/gs, "")
-      .replace("<｜end▁of▁sentence｜>", "");
+      .replace("<｜end▁of▁sentence｜>", "")
   }
 }
 
@@ -1600,10 +1633,11 @@ worker.onmessage = (e) => {
 };
 
 function delay(ms, finalBusy = 1e-10) {
-  return new Promise((resolve) => {
+  return new Promise(r => {
     let id = nextId++;
+    pending[id] = r;
     
-    pending[id] = resolve;
+    if (Object.keys(pending).length > 100) pending = {};
     worker.postMessage({ id, ms, fb: finalBusy });
   });
 }
