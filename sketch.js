@@ -1,4 +1,4 @@
-let url = "https://<url>.ezkidtrix.workers.dev/";
+let url = "https://<url>.workers.dev/";
 let [models, history] = [{
   "DeepSeek V3.1 Terminus": "deepseek-ai/deepseek-v3.1-terminus",
   "DeepSeek V3.1": "deepseek-ai/deepseek-v3.1",
@@ -25,7 +25,7 @@ let btns, [
   messageData
 ] = new Array(5).fill();
 
-let mainContainer, header;
+let mainContainer, titleContainerheader;
 let inputContainer, inputWrapper, inputFieldWrapper;
 
 let title, visible = true;
@@ -40,15 +40,15 @@ let responding = false, scrolled = false;
 let [dtime, time] = [0, 0];
 let dropdownToggled = false, stop = false;
 
-let aiText = "";
-let currReasoningText = "", currReasoningSpan;
+let currReasoningSpan;
+let currReasoningText = "";
 
 let ready = false;
 let colors = {
   tx: "#ECE8E8",
   bg: "#464646",
   h1: "#3A3A3A",
-  br: "#353535",
+  br: "#2C2C2C",
   msg: "#3A3A3A",
   btn: "#FF0000",
   btn2: "#B60000",
@@ -58,9 +58,11 @@ let colors = {
 let pickedColor = colors.btn;
 let currentHue = 0, currentSat = 100, currentVal = 100;
 
-let md;
-let focus = false;
+let aHistory = [];
 let sourcesSidebar = null;
+
+let md, chatTitle;
+let focus = false;
 
 function setup() {
   noCanvas();
@@ -78,9 +80,11 @@ function draw() {
   
   if (inputFieldWrapper && title) {
     if (history.length > 0 || responding || loading) {
-      inputFieldWrapper.style("bottom", "0px");
+      title.style("opacity", "0");
+      inputFieldWrapper.style("transform", "translateY(10px)");
     } else {
-      inputFieldWrapper.style("bottom", `${windowHeight / 2 - 100}px`);
+      title.style("opacity", "1");
+      inputFieldWrapper.style("transform", `translateY(${-windowHeight / 2 + 110}px)`);
     }
   }
   
@@ -120,35 +124,30 @@ async function init() {
 
       let header = document.createElement("div");
       header.className = "code-header";
+      
       header.innerHTML = `
-        <span class="code-language">${lang || "text"}</span>
-        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+        <span class="code-language">${lang || "text"}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
       `;
-
       let codeContent = document.createElement("pre");
+      
       codeContent.className = "code-content";
-
       let codeEl = document.createElement("code");
+      
       codeEl.setAttribute("allow", "clipboard-read; clipboard-write *");
       codeEl.className = lang ? `language-${lang}` : "";
-
+      
       codeEl.textContent = str;
       codeContent.appendChild(codeEl);
-
+      
       codeBlock.appendChild(header);
       codeBlock.appendChild(codeContent);
-
-
+      
       if (window.hljs && lang) {
         try {
           hljs.highlightElement(codeEl);
         } catch (e) {
-          if (window.Prism) {
-            Prism.highlightElement(codeEl, true);
-          }
+          console.error(e);
         }
-      } else if (window.Prism && lang) {
-        Prism.highlightElement(codeEl, true);
       }
 
       return codeBlock.outerHTML;
@@ -204,7 +203,7 @@ function elements() {
   mainContainer.style("position", "fixed");
   mainContainer.style("top", "0");
   mainContainer.style("left", "0");
-  mainContainer.style("width", "100vw");
+  mainContainer.style("width", `${windowWidth}px`);
   mainContainer.style("height", "100vh");
   mainContainer.style("background", colors.bg)
   mainContainer.style("display", "flex");
@@ -213,27 +212,49 @@ function elements() {
   header = createDiv();
   header.style("height", "60px");
   header.style("background", colors.h1)
-  header.style("border-bottom", `3px solid ${colors.br}`);
   header.style("display", "flex");
   header.style("align-items", "center");
   header.style("justify-content", "left");
+  header.style("border-bottom", `3px solid ${colors.br}`);
   header.style("padding", "0 10px");
   header.parent(mainContainer);
   header.child(document.querySelector(".dropdown-container"));
+  
+  let titleContainer = createDiv();
+  titleContainer.position(0, 0);
+  titleContainer.size(windowWidth, 60);
+  titleContainer.style("display", "flex");
+  titleContainer.style("align-items", "center");
+  titleContainer.style("justify-content", "center");
+  titleContainer.style("padding", "0 10px");
+  titleContainer.style("pointer-events", "none");
+  
+  chatTitle = createDiv("Untitled Chat");
+  chatTitle.style("color", "white");
+  chatTitle.style("text-align", "center");
+  chatTitle.style("font-weight", "bold");
+  chatTitle.style("font-family", "system-ui, -apple-system, sans-serif");
+  chatTitle.style("font-size", "16px");
+  chatTitle.style("display", "flex");
+  chatTitle.style("position", "relative");
+  chatTitle.style("left", "calc(15px)");
+  chatTitle.style("pointer-events", "none");
+  chatTitle.parent(titleContainer);
 
   let chatContainer = createDiv();
   chatContainer.style("flex", "1");
   chatContainer.style("display", "flex");
   chatContainer.style("justify-content", "center");
   chatContainer.style("overflow", "hidden");
+  chatContainer.style("padding-bottom", "50px");
   chatContainer.parent(mainContainer);
 
   output = createDiv();
   output.style("width", "100%");
   output.style("max-width", `${windowWidth}px`);
-  output.style("height", "100%");
+  output.style("height", "70%");
   output.style("overflow-y", "auto");
-  output.style("padding", "20px");
+  output.style("padding", "30px 30px 120px 30px");
   output.style("background", colors.bg)
   output.style("color", colors.tx);
   output.style("font-family", "system-ui, -apple-system, sans-serif");
@@ -245,34 +266,47 @@ function elements() {
   output.style("scrollbar-color", "rgb(40, 40, 40) transparent");
 
   inputContainer = createDiv();
-  inputContainer.style("background", "transparent");
-  inputContainer.style("padding", "10px");
-  inputContainer.style("display", "flex");
-  inputContainer.style("justify-content", "center");
+  inputContainer.style("position", "fixed");
+  inputContainer.style("bottom", "0");
+  inputContainer.style("left", "0");
+  inputContainer.style("width", `${windowWidth}px`);
+  inputContainer.style("padding", "15px 20px 25px 20px");
+  inputContainer.style("background", "transparent"); 
+  inputContainer.style("z-index", "10");
+  inputContainer.style("pointer-events", "none");
+  inputContainer.style("box-sizing", "border-box");
   inputContainer.parent(mainContainer);
 
   inputWrapper = createDiv();
+  inputWrapper.style("margin", "0 auto");
+  inputWrapper.style("width", "100%");
   inputWrapper.style("display", "flex");
   inputWrapper.style("gap", "12px");
-  inputWrapper.style("align-items", "flex-end");
+  inputWrapper.style("pointer-events", "auto");
   inputWrapper.parent(inputContainer);
 
   inputFieldWrapper = createDiv();
   inputFieldWrapper.style("flex", "1");
   inputFieldWrapper.style("position", "relative");
-  inputFieldWrapper.style("background", colors.input);
+  inputFieldWrapper.style("background", "rgb(30, 30, 30, 0.1)");
   inputFieldWrapper.style("border", "1px solid rgb(40, 40, 40)");
   inputFieldWrapper.style("border-radius", "12px");
-  inputFieldWrapper.style("transition", "all 0.5s ease");
-  inputFieldWrapper.style("height", "105px");
   inputFieldWrapper.style("box-shadow", "0 0 50px rgba(0, 0, 0, 0.6)");
-  inputFieldWrapper.style("bottom", `${windowHeight / 2 - 100}px`);
+  inputFieldWrapper.style("transition", "all 0.5s ease");
+  inputFieldWrapper.style("height", "110px");
+  inputFieldWrapper.style("padding-bottom", "10px");
+  inputFieldWrapper.style("transform-origin", "center bottom");
+  inputFieldWrapper.style("transform", `translateY(${-windowHeight / 2 + 110}px)`);
+  inputFieldWrapper.style("pointer-events", "auto");
+  inputFieldWrapper.style("backdrop-filter", "blur(10px)");
+  inputFieldWrapper.style("-webkit-backdrop-filter", "blur(10px)");
   inputFieldWrapper.parent(inputWrapper);
 
   input = createElement("textarea");
-  input.style("width", `${min(windowWidth - 100, 600)}px`);
-  input.style("min-height", "30px");
-  input.style("max-height", "30px");
+  input.style("min-width", "95%");
+  input.style("max-width", "600px");
+  input.style("min-height", "50px");
+  input.style("max-height", "50px");
   input.style("background", "transparent");
   input.style("border", "none");
   input.style("outline", "none");
@@ -282,7 +316,7 @@ function elements() {
   input.style("line-height", "1.5");
   input.style("padding", "10px");
   input.style("resize", "none");
-  input.style("overflow-y", "auto");
+  input.style("overflow-y", "scroll");
   input.style("scrollbar-width", "thin");
   input.style("scrollbar-color", "rgb(40, 40, 40) transparent");
   input.attribute("maxlength", "100000");
@@ -314,7 +348,7 @@ function elements() {
   
   title = createSpan(`<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="80px" height="80px" viewBox="0 0 425 425"  preserveAspectRatio="xMidYMid meet"><g transform="translate(0, 1024) scale(0.1, -0.1)" fill="#fff" stroke="none"><path d="M3120 9455 c-60 -19 -123 -74 -152 -133 -22 -46 -23 -55 -23 -302 0 -223 2 -261 18 -302 25 -64 101 -132 167 -149 l49 -13 3 -95 c3 -94 3 -96 32 -109 37 -18 45 -15 207 105 l134 98 190 5 c185 5 191 6 237 33 53 31 94 79 114 134 18 51 20 507 2 565 -16 53 -87 131 -140 154 -39 17 -77 19 -418 21 -301 2 -384 -1 -420 -12z m790 -140 c59 -30 60 -37 60 -302 l0 -243 -29 -32 -29 -33 -199 -5 -198 -5 -92 -67 c-51 -38 -95 -68 -98 -68 -3 0 -5 23 -5 50 0 69 -22 90 -95 90 -67 0 -109 20 -130 60 -22 43 -22 457 1 505 30 63 40 65 432 65 294 0 358 -3 382 -15z"/> <path d="M1029 9414 c-71 -30 -69 -11 -69 -592 l0 -521 26 -20 c22 -17 41 -21 110 -21 l84 0 0 -121 c0 -110 -2 -120 -17 -115 -10 3 -110 25 -223 51 -172 38 -209 44 -228 34 -12 -7 -25 -22 -28 -33 -4 -19 -51 -266 -245 -1283 -56 -293 -57 -304 -7 -337 25 -17 589 -176 623 -176 24 0 61 24 74 48 5 9 25 109 45 222 20 113 39 210 41 215 3 6 3 -88 0 -207 l-5 -217 26 -30 26 -31 769 0 770 0 24 25 c30 29 29 25 9 268 -8 104 -14 191 -11 193 2 2 27 -96 55 -218 29 -122 59 -232 67 -245 9 -12 26 -25 39 -29 19 -4 469 73 795 137 61 12 101 45 101 83 0 13 -33 161 -74 328 -186 756 -307 1246 -317 1274 -18 56 -40 58 -259 15 -107 -21 -198 -36 -202 -34 -5 2 -8 80 -8 173 0 198 -1 200 -102 200 l-57 0 -3 454 c-3 438 -4 455 -23 476 -45 51 -24 50 -927 49 -720 0 -848 -2 -879 -15z m1681 -564 l0 -440 -60 0 -60 0 0 190 c0 231 1 230 -110 230 l-70 0 0 50 c0 37 -5 55 -20 70 -19 19 -33 20 -265 20 -232 0 -246 -1 -265 -20 -15 -15 -20 -33 -20 -70 l0 -50 -153 0 c-187 0 -197 -4 -197 -86 l0 -54 -58 0 c-82 0 -102 -16 -102 -86 l0 -54 -50 0 c-69 0 -100 -30 -100 -95 0 -45 0 -45 -35 -45 l-35 0 0 435 0 435 413 2 c226 2 586 4 800 6 l387 3 0 -441z m-440 -70 c0 -73 20 -90 110 -90 l70 0 0 -194 0 -195 26 -20 c19 -15 41 -21 75 -21 l49 0 0 -185 0 -185 -635 0 -635 0 0 255 0 255 41 0 c41 0 78 14 91 34 4 6 8 32 8 57 l0 47 66 4 c79 5 94 19 94 89 l0 47 156 4 c150 3 157 4 175 27 13 16 19 39 19 72 l0 49 145 0 145 0 0 -50z m548 -697 c-87 -111 -78 -116 -78 40 l0 137 28 0 c15 1 41 7 57 14 l30 13 3 -75 c3 -74 3 -74 -40 -129z m640 -420 c45 -186 107 -441 137 -567 31 -125 54 -230 52 -233 -6 -5 -668 -135 -672 -131 -2 2 -56 231 -120 509 l-117 506 62 80 61 80 117 22 c64 12 173 32 242 45 69 13 132 25 140 25 12 1 34 -74 98 -336z m-2484 262 c220 -49 206 -44 206 -70 0 -41 22 -86 46 -95 13 -5 22 -15 19 -22 -4 -12 -16 -83 -116 -663 -23 -132 -44 -243 -48 -247 -5 -6 -460 97 -469 107 -3 2 35 208 83 457 47 249 92 479 98 511 6 31 14 57 18 57 5 0 78 -16 163 -35z m536 -388 c0 -162 3 -218 13 -231 12 -17 28 -19 137 -17 71 1 129 6 137 12 9 8 13 66 15 228 l3 216 148 3 147 3 0 -289 c0 -244 2 -291 16 -310 14 -20 23 -22 125 -22 161 0 149 -26 149 330 l0 290 104 0 104 0 6 -57 c6 -57 15 -160 56 -683 12 -146 27 -337 34 -425 8 -88 12 -163 9 -167 -2 -5 -310 -8 -684 -8 l-679 0 0 93 c0 68 28 1229 30 1245 0 1 29 2 65 2 l65 0 0 -213z m210 73 l0 -141 -57 3 -58 3 -3 124 c-1 69 0 131 2 138 4 9 24 13 61 13 l55 0 0 -140z m590 -75 l0 -215 -55 0 -55 0 0 215 0 215 55 0 55 0 0 -215z m-1083 -752 c-4 -3 -7 0 -7 7 0 7 3 10 7 7 3 -4 3 -10 0 -14z m-397 -47 l225 -54 -3 -28 c-5 -46 -33 -207 -37 -215 -4 -6 -464 117 -474 126 -4 4 28 190 36 213 3 6 10 12 17 12 6 0 112 -24 236 -54z m2882 -101 c11 -48 16 -90 12 -95 -16 -14 -669 -128 -675 -118 -9 13 -42 168 -37 173 1 1 113 24 248 50 135 26 286 55 335 64 50 10 91 17 93 16 2 -2 12 -42 24 -90z"/> <path d="M1640 8370 l0 -180 85 0 85 0 0 164 c0 90 -3 171 -6 180 -5 13 -22 16 -85 16 l-79 0 0 -180z"/> <path d="M2130 8370 l0 -180 85 0 85 0 0 180 0 180 -85 0 -85 0 0 -180z"/></g></svg><span class="icon-label" style="margin: 0 auto;">Ezkidtrix's AI Chat</span>`);
   title.size(250, 50);
-  title.position(windowWidth / 2 - title.width / 2, windowHeight / 2 - 140);
+  title.position(windowWidth / 2 - title.width / 2, windowHeight / 2 - 150);
   title.style("display", "block");
   title.style("align-items", "center");
   title.style("justify-content", "center");
@@ -346,15 +380,6 @@ function elements() {
   submitBtn.parent(inputFieldWrapper);
   submitBtn.mousePressed(reply);
   
-  submitBtn.mouseOver(() => {
-    submitBtn.style("background", colors.btn2);
-  });
-  submitBtn.mouseOut(() => {
-    if (!responding) {
-      submitBtn.style("background", colors.btn);
-    }
-  });
-  
   clearBtn = createButton(`<svg width="20px" height="20px" viewBox="0 0 24 24" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
  <g transform="translate(0 -1028.4)"><path d="m5 1031.4c-2.2091 0-4 1.8-4 4v8c0 2.2 1.7909 4 4 4h0.1562v4.8l5.9058-4.8h7.938c2.209 0 4-1.8 4-4v-8c0-2.2-1.791-4-4-4h-14z" fill="rgb(0, 0, 0, 0)" stroke="#ffffff" stroke-width="2.5px" />
  </g></svg>`);
@@ -385,9 +410,13 @@ function elements() {
       
       responding = false;
       messageData.elt.innerText = "Tokens/s: 0.00";
+      
+      storeItem("chat_title", "Untitled Chat");
+      chatTitle.elt.innerHTML = "Untitled Chat";
     }
     
     input.elt.focus();
+    storeItem("chat_history", history);
   });
   
   messageData = createSpan("Tokens/s: 0.00");
@@ -423,7 +452,7 @@ function elements() {
   scrollBtn.style("height", "40px");
   scrollBtn.style("text-align", "center");
   scrollBtn.style("position", "absolute");
-  scrollBtn.style("bottom", "110px");
+  scrollBtn.style("bottom", "125px");
   scrollBtn.style("right", "5px");
   scrollBtn.style("opacity", "0");
   scrollBtn.style("transition", "opacity 0.5s");
@@ -457,6 +486,12 @@ function elements() {
     btns.push(d);
   }
   
+  let aiModel = getItem("model") || null;
+  if (aiModel) {
+    currentModel = aiModel;
+    document.querySelector(".dropdown-text").textContent = Object.keys(models)[Object.values(models).indexOf(currentModel)];
+  }
+  
   handleColorPicker();
   setupColorPicker();
   
@@ -472,6 +507,8 @@ function elements() {
 
   let sourcesBtn = document.querySelector(".sources-btn");
   if (sourcesBtn) new p5.Element(sourcesBtn).style("background", colors.btn);
+  
+  loadHistory();
 }
 
 function handleDropdown() {
@@ -485,6 +522,7 @@ function handleDropdown() {
     
     option.addEventListener("click", e => {
       e.preventDefault();
+      storeItem("model", models[option.textContent]);
 
       let selectedModel = option.textContent;
       dropdownText.textContent = selectedModel;
@@ -695,6 +733,80 @@ function rgbToHex(r, g, b) {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
+async function loadHistory() {
+  let storedHistory = getItem("chat_history");
+  
+  let title = getItem("chat_title") || "Untitled Chat";
+  chatTitle.elt.innerHTML = title;
+  
+  if (storedHistory) {
+    history = storedHistory;
+    
+    for (let item of history) {
+      if (item.type === "message") {
+        document.querySelectorAll(".resend-msg-control").forEach(e => e.remove());
+        
+        let content = item.content.replace(/\n/g, "<br>");
+        let thinkSpan, messageSpan = await addMessage("", item.role === "user");
+        
+        if (item.reason_content && item.reason_content.length > 0) {
+          thinkSpan = createSpan(item.reason_content.replace(/\n/g, "<br>"))
+            .style("display", "block")
+            .style("border-left", "5px solid rgb(20, 20, 20)")
+            .style("border-radius", "3px")
+            .style("padding", "8px")
+            .style("margin", "5px 0")
+            .style("font-style", "italic")
+            .style("color", "rgba(200, 220, 200, 0.9)");
+          thinkSpan.parent(messageSpan);
+        }
+        
+        await updateMessageDisplay(messageSpan, content, true);
+        await formatTextStreaming(item.content, messageSpan.elt);
+        
+        if (thinkSpan) messageSpan.elt.prepend(thinkSpan.elt);
+        if (item.role === "assistant") aiText = content;
+        
+        output.elt.scrollTo({
+          top: output.elt.scrollHeight * 10,
+          behavior: "instant",
+        });
+      }
+    }
+    
+    output.elt.scrollTo({
+      top: output.elt.scrollHeight * 10,
+      behavior: "instant",
+    });
+  }
+}
+
+async function getChatTitle(msg) {
+  let res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "deepseek-ai/deepseek-v3.1-terminus",
+      temperature: 0.3,
+      top_p: 0.9,
+      stream: false,
+      max_tokens: 20,
+      chat_template_kwargs: {
+        thinking: false
+      },
+      messages: [
+        { "role": "system", "content": "You are an AI Chatbot designed to provide a completely raw, unformatted a short, brief title in 5 words or less for the chat based on given user's first message. DO NOT say anything other than title." },
+        { "role": "user", "content": msg }
+      ]
+    })
+  });
+  
+  let title = (await res.json()).choices[0].message.content || "";
+  chatTitle.elt.innerHTML = title;
+  
+  storeItem("chat_title", title);
+}
+
 async function keyPressed() {
   if (
     key === "Enter" && !responding && !loading &&
@@ -751,7 +863,7 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
       behavior: "instant",
     });
     
-    document.querySelectorAll(".copy-msg").forEach(e => {
+    document.querySelectorAll(".resend-msg-control").forEach(e => {
       if (!continuing) e.remove();
     });
 
@@ -759,8 +871,12 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
     if (!reasonText) reasonText = "";
     
     if (!messageSpan) messageSpan = await addMessage("", false, false);
-    if (!continuing) history.push({ role: "user", content: query });
+    if (!continuing) {
+      history.push({ role: "user", content: query, type: "message" });
+      storeItem("chat_history", history);
+    }
     
+    if (history.length === 1) getChatTitle(history[0].content);
     if (!thinkSpan) {
       thinkSpan = createSpan("")
         .style("display", "block")
@@ -976,11 +1092,13 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
               
               history.push({
                 role: "assistant",
-                content: reasonText + mainText
+                content: reasonText + mainText, 
+                type: "continue_data"
               });
               history.push({
                 role: "user",
-                content: `**Web Search Data:**\n${webData}\n\n**Previous Message:** ${reasonText + mainText}`
+                content: `**Web Search Data:**\n${webData}\n\n**Previous Message:** ${reasonText + mainText}`, 
+                type: "web_data"
               });
               
               mainText += "<br><br>"
@@ -989,7 +1107,7 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
               toolData = null;
               searchDiv.remove();
               
-              if (!stop) return getResponse(`**Web Search Data:**\n${webData}\n\n**Previous Message:** ${reasonText + mainText}`, thinkSpan, messageSpan, searchDiv, reasonText, mainText, true, true);
+              if (!stop) return getResponse("", thinkSpan, messageSpan, searchDiv, reasonText, mainText, true, true);
             }
             
             prevType = type;
@@ -1037,7 +1155,10 @@ async function getResponse(query, thinkSpan, messageSpan, searchDiv, reasonText,
     }
 
     formatMath(messageSpan.elt);
-    history.push({ role: "assistant", content: mainText });
+    formatTextStreaming(mainText, messageSpan);
+
+    history.push({ role: "assistant", content: mainText, reason_content: reasonText, type: "message" });
+    storeItem("chat_history", history);
     
     if (searchDiv) try { 
       searchDiv.remove(); 
@@ -1086,11 +1207,6 @@ async function searchResponse(terms, span, searchDiv) {
   
   let aSpans = [];
   let webData = [];
-  
-  output.elt.scrollTo({
-    top: output.elt.scrollHeight * 2,
-    behavior: "instant",
-  });
 
   for (let q of terms.slice(0, 1)) {
     let urlSpan = createSpan(`<br>${q}<br>`)
@@ -1102,16 +1218,11 @@ async function searchResponse(terms, span, searchDiv) {
       .style("font-style", "italic")
       .style("padding", "5px")
       .style("margin", "5px")
-      .parent(searchDiv)
-      
+      .parent(searchDiv);
     let results = JSON.parse(await webSearch(q)).results;
-    output.elt.scrollTo({
-      top: output.elt.scrollHeight * 2,
-      behavior: "instant",
-    });
     
     if (results) {
-      let items = results.slice(0, 10);
+      let items = results.slice(0, 50);
       console.log(`${q}: ${items.length}`);
 
       for (let item of items) {
@@ -1154,13 +1265,11 @@ async function searchResponse(terms, span, searchDiv) {
   }
   
   if (span && webData && webData.length) span.sources = webData;
-  console.log(webData);
-  
   return webData;
 }
 
 async function webSearch(tx) {
-  let url = "https://<url>.ezkidtrix.workers.dev/?";
+  let url = "https://<url>.workers.dev/?";
   let res = await fetch(`${url}${tx.startsWith("https://") ? "url" : "q"}=${tx}`);
   
   let results = await res.text();
@@ -1332,20 +1441,22 @@ function updateTPS() {
 async function addMessage(tx, user, animate = false) {
   let messageContainer = createDiv();
   messageContainer.class("message-container");
+  messageContainer.style("max-width", "75%");
   messageContainer.style("display", "flex");
-  messageContainer.style("margin", "16px 0");
-  messageContainer.style("padding", "0 10px");
-  
-  if (user) {
-    messageContainer.style("justify-content", "flex-end");
-  } else {
-    messageContainer.style("justify-content", "flex-start");
-  }
+  messageContainer.style("margin", "10px 0");
+  messageContainer.style("padding", "0 5px");
+  messageContainer.style("flex-direction", "column");
+  messageContainer.style("align-items", user ? "flex-end" : "flex-start");
+  messageContainer.style("justify-content", user ? "flex-end" : "flex-start");
+  messageContainer.style("margin-left", user ? "auto" : "0");
+  messageContainer.style("margin-right", !user ? "auto" : "0");
+  messageContainer.parent(output);
 
   let messageBubble = createDiv();
   messageBubble.class("message-bubble");
-  messageBubble.style("max-width", "75%");
-  messageBubble.style("padding", "12px 16px");
+  messageBubble.style("font-family", "system-ui, -apple-system, sans-serif");
+  messageBubble.style("max-width", "100%");
+  messageBubble.style("padding", "10px 16px");
   messageBubble.style("border-radius", "16px");
   messageBubble.style("font-size", "14px");
   messageBubble.style("line-height", "1.5");
@@ -1354,60 +1465,86 @@ async function addMessage(tx, user, animate = false) {
   messageBubble.style("word-break", "break-word");
   messageBubble.style("hyphens", "auto");
   messageBubble.style("overflow-wrap", "break-word");
+  messageBubble.parent(messageContainer);
   
   if (user) {
     messageBubble.style("background", "rgb(50, 50, 50)");
     messageBubble.style("color", "white");
-    messageBubble.style("border-bottom-right-radius", "4px");
+    messageBubble.style("border-bottom-right-radius", "3px");
   } else {
     messageBubble.style("background", "rgb(30, 30, 30)");
     messageBubble.style("color", "rgb(220, 240, 220)");
     messageBubble.style("border", "1px solid rgb(20, 20, 20)");
-    messageBubble.style("border-bottom-left-radius", "4px");
+    messageBubble.style("border-bottom-left-radius", "3px");
   }
   
-  messageBubble.parent(messageContainer);
-  messageContainer.parent(output);
+  let controls = createDiv();
+  controls.class("msg-controls");
+  controls.style("display", "flex");
+  controls.style("background", "transparent");
+  controls.style("color", "white");
+  controls.style("border-radius", "8px");
+  controls.style("align-self", user ? "flex-end" : "flex-start");
+  controls.style("display", "none");
+  controls.parent(messageContainer);
+  
+  messageContainer.mouseOver(() => controls.style("display", "flex"));
+  messageContainer.mouseOut(() => controls.style("display", "none"));
+  
+  let copyControl = createButton(`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+  copyControl.size(30, 30);
+  copyControl.class("copy-msg-control");
+  copyControl.style("background", "transparent");
+  copyControl.style("border", "none");
+  copyControl.style("border-radius", "8px");
+  copyControl.style("font-weight", "100");
+  copyControl.style("cursor", "pointer");
+  copyControl.style("transition", "all 0.2s ease");
+  copyControl.style("padding", "6px");
+  copyControl.style("line-height", "1");
+  copyControl.parent(controls);
+  
+  copyControl.mousePressed(() => {
+    let msgText = messageBubble.elt.innerText.replace(
+      messageBubble.elt.firstChild.innerText + "\n\n", ""
+    ) || "";
+        
+    navigator.clipboard.writeText(
+      msgText || ""
+    ).catch(() => {
+      let ta = document.createElement("textarea");
+
+      ta.value = msgText || "";
+      ta.style.position = "fixed";
+
+      document.body.appendChild(ta);
+      ta.select();
+
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+    });
+  });
   
   if (!user) {
-    messageContainer.style("flex-direction", "column");
-    messageContainer.style("align-items", "flex-start");
-    
-    let copyBtn = createButton("Copy");
-    copyBtn.class("copy-msg");
-    copyBtn.style("background", colors.btn);
-    copyBtn.style("color", colors.tx);
-    copyBtn.style("border", "none");
-    copyBtn.style("border-radius", "8px");
-    copyBtn.style("margin", "3px 3px")
-    copyBtn.style("font-size", "15px");
-    copyBtn.style("font-family", "system-ui, -apple-system, sans-serif");
-    copyBtn.style("font-weight", "100");
-    copyBtn.style("cursor", "pointer");
-    copyBtn.style("transition", "all 0.2s ease");
-    copyBtn.style("width", "50px");
-    copyBtn.style("height", "25px");
-    copyBtn.style("text-align", "center");
-    copyBtn.style("position", "relative");
-    copyBtn.style("align-self", "flex-start");
-    copyBtn.style("margin-top", "3px");
-    copyBtn.parent(messageContainer);
-    
-    copyBtn.mousePressed(() => {
-      navigator.clipboard.writeText(
-        aiText || 0
-      ).catch(() => {
-        let ta = document.createElement("textarea");
-        
-        ta.value = aiText || 0;
-        ta.style.position = "fixed";
-        
-        document.body.appendChild(ta);
-        ta.select();
-        
-        try { document.execCommand("copy"); } catch (e) {}
-        document.body.removeChild(ta);
-      });
+    let resendControl = createButton(`<svg width="20" height="20" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path fill="#fff" d="M7.248 1.307A.75.75 0 1 1 8.252.193l2.5 2.25a.75.75 0 0 1 0 1.114l-2.5 2.25a.75.75 0 0 1-1.004-1.114l1.29-1.161a4.5 4.5 0 1 0 3.655 2.832.75.75 0 1 1 1.398-.546A6 6 0 1 1 8.018 2z"/></svg>`);
+    resendControl.size(30, 30);
+    resendControl.class("resend-msg-control");
+    resendControl.style("background", "transparent");
+    resendControl.style("border", "none");
+    resendControl.style("border-radius", "8px");
+    resendControl.style("font-weight", "100");
+    resendControl.style("cursor", "pointer");
+    resendControl.style("transition", "all 0.2s ease");
+    resendControl.style("padding", "6px");
+    resendControl.style("line-height", "1");
+    resendControl.parent(controls);
+
+    resendControl.mousePressed(() => {
+      if (!responding) {
+        messageBubble.elt.innerText = "";
+        history = history.slice(0, history.length - 2)
+        getResponse(history[history.length - 2].content, null, messageBubble, null, "", "", false, false);
+      }
     });
   }
 
@@ -1439,12 +1576,12 @@ async function updateMessageDisplay(span, token, isFinal) {
   }
 }
 
-async function formatTextStreaming(text, container) {
+async function formatTextStreaming(tx, container) {
   try {
     let mathBlocks = [];
     let mathCounter = 0;
     
-    let processedText = text
+    let processedText = tx
       .replace(/\\\(([\s\S]*?)\\\)/g, (match, content) => {
         let placeholder = `MATHBLOCK${mathCounter++}ENDMATH`;
         mathBlocks.push(`\\(${content}\\)`);
@@ -1478,8 +1615,8 @@ async function formatTextStreaming(text, container) {
     
     window.copyToClipboard = copyToClipboard;
   } catch (error) {
-    console.warn("Streaming format error:", error);
-    container.innerHTML = text
+    console.error("Streaming format error:", error);
+    container.innerHTML = tx
       .replace(/\n/g, "<br>")
       .replace(/\\n/g, "<br>")
       .replace("<｜end▁of▁sentence｜>", "");
@@ -1518,38 +1655,6 @@ async function formatMath(el) {
   } catch (e) {
     console.warn("MathJax typeset error:", e);
   }
-}
-
-async function sumContent(result) {
-  try {
-    let res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "deepseek-ai/deepseek-v3.1-terminus",
-        messages: [
-          { "role": "system", "content": "You are a professional AI Web Search Summarizer. Your objective to summarize the user's given web results in a 2-3 sentence quick and concise summary of their text and respond with nothing else other than the summary. Make sure you provide the date of each result (if provided in their result) and also provide the source link after the summary." },
-          { "role": "user", "content": result }
-        ],
-        stream: false,
-        max_tokens: 256,
-        temperature: 0.7,
-        chat_template_kwargs: {
-          thinking: false
-        }
-      })
-    });
-    if (res.status !== 200) throw new Error("AI Web Search Summarization failed!");
-    
-    let json = await res.json();
-    let tx = json?.choices?.[0]?.message?.content || "";
-    
-    return tx;
-  } catch (err) {
-    console.error(err);
-  }
-    
-  return "";
 }
 
 function getTime() {
